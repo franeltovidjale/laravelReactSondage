@@ -2,8 +2,14 @@ import React, { useState } from 'react'
 import PageComponent from '../components/PageComponent'
 import { PhotoIcon } from '@heroicons/react/24/outline';
 import TButton from '../components/core/TButton';
+import axiosClient from '../axios.js';
+import { useNavigate } from 'react-router-dom';
+import SurveyQuestions from '../components/SurveyQuestions.jsx';
 
 export default function surveyView() {
+
+  const navigate = useNavigate();
+
   const [survey ,setSurvey] =useState({
     title:"",
     slug:"",
@@ -16,13 +22,49 @@ export default function surveyView() {
 
   });
 
-  const onImageChoose = () =>{
-    console.log("On imaage choose");
+  const [error, setError] = useState('');
+
+  const onImageChoose = (ev) =>{
+    const file = ev.target.files[0];
+
+    const reader = new FileReader();
+    reader.onload = () =>{
+      
+      setSurvey({
+        ...survey,
+        image: file,
+        image_url : reader.result 
+      })
+
+      ev.target.value = " "
+      
+    }
+    reader.readAsDataURL(file);
   }
 
   const onSubmit = (ev)=>{
     ev.preventDefault();
-    console.log(ev);
+   
+    const payload = {...survey};
+
+    if (payload.image) {
+      payload.image = payload.image_url
+    }
+
+    delete payload.image_url;
+
+    axiosClient.post('survey',payload)
+    .then((res) => {
+      console.log(res); 
+
+      navigate('/surveys')
+    })
+    .catch((err) => {
+      if (err && err.response) {
+        setError(err.response.data.message);
+      }
+        console.log(err, err.response);
+    })
   }
 
 
@@ -31,8 +73,18 @@ export default function surveyView() {
         
         <form action="" method='post' onSubmit={onSubmit}>
             <div className="shadow sm:overflow-hidden sm:rounded-md">
+
+            
                 <div className="space-y-6 bg-white px-4 py-5 sm:p-6">
                      {/* image */}
+
+                    {error && 
+                    (
+                       <div className="bg-red-500 text-white px-2 py-3 ">
+                          {error}
+                     </div>
+                    )}
+
                      <div>
                         <label className="block text-sm font-medium text-gray-700">
 
@@ -134,8 +186,11 @@ export default function surveyView() {
                   onChange={(ev) =>
                     setSurvey({ ...survey, expire_date: ev.target.value })
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500
+                   focus:ring-indigo-500 sm:text-sm border-red-500"
                 />
+
+                <small className='text-red-500'> lorem ipsum </small>
               </div>
               {/*Expire Date*/}
 
@@ -167,11 +222,11 @@ export default function surveyView() {
               </div>
               {/*Active*/}
 
-
+                    <SurveyQuestions />
                 </div>
                 <div className='bg-gray-50 px-4 py-4 text-right sm:px-6'>
                     <TButton>
-                      Save
+                      Save 
                     </TButton>
                 </div>
             </div>

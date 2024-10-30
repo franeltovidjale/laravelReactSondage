@@ -3,6 +3,8 @@ import { Bars3Icon, BellIcon, UserIcon, XMarkIcon } from '@heroicons/react/24/ou
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { UseStateContext } from '../contexts/ContextProvider'
 
+import axiosClient from '../axios'
+
 
 const navigation = [
 
@@ -18,14 +20,19 @@ function classNames(...classes) {
 
 export default function DefaultLayouts() {
 
-    const { currentUser , userToken} = UseStateContext();
+    const { currentUser , userToken , setCurrentUser,setUserToken} = UseStateContext();
     if(!userToken){
         return <Navigate to="login" />
     }
 
     const logout = (ev) => {
         ev.preventDefault();
-        console.log('logout')
+        axiosClient.post('/logout')
+        .then(res => {
+          setCurrentUser({})
+          setUserToken(null)
+        })
+
     }
   return (
     <>
@@ -38,7 +45,7 @@ export default function DefaultLayouts() {
                 <div className="flex-shrink-0">
                   <img
                     alt="Your Company"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                    src="https://tailwindcss.com/_next/static/media/tailwindcss-logotype-white.944c5d0ef628083bb316f9b3d643385c86bcdb3d.svg"
                     className="h-8 w-8"
                   />
                  
